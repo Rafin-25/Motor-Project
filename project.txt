@@ -1,0 +1,83 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+// Pin definitions
+const int pwmPin = 9;  // PWM pin to control motor speed
+
+// Initialize the LCD with I2C address 0x27
+LiquidCrystal_I2C lcd(0x25, 16, 2);
+
+char command;  // Variable to store incoming Bluetooth command
+
+void setup() {
+  // Set PWM pin as output
+  pinMode(pwmPin, OUTPUT);
+
+  // Initialize Serial communication for Bluetooth
+  Serial.begin(9600);
+
+  // Initialize the LCD and display a startup message
+  lcd.init();
+  lcd.backlight();
+  lcd.print("Motor Control");
+  lcd.setCursor(0, 1);
+  lcd.print("Ready");
+  delay(2000);
+  lcd.clear();
+
+  // Notify setup completion
+  Serial.println("Bluetooth Motor Control Initialized. Send commands:");
+  Serial.println("'1' - Run motor at speed 210");
+  Serial.println("'2' - Run motor at speed 230");
+  Serial.println("'3' - Run motor at speed 255");
+  Serial.println("'S' - Stop motor");
+
+  lcd.print("Send commands:");
+  lcd.setCursor(0, 1);
+  lcd.print("1, 2, 3, S");
+}
+
+void loop() {
+  // Check if data is available from the Bluetooth module
+  if (Serial.available() > 0) {
+    // Read the incoming command
+    command = Serial.read();
+
+    // Execute the command
+    switch (command) {
+      case '1':  // Run motor at speed 210
+        analogWrite(pwmPin, 50);
+        Serial.println("Motor running at speed 210");
+        lcd.clear();
+        lcd.print("Speed: low");
+        break;
+
+      case '2':  // Run motor at speed 230
+        analogWrite(pwmPin, 30);
+        Serial.println("Motor running at speed 230");
+        lcd.clear();
+        lcd.print("Speed: medium");
+        break;
+
+      case '3':  // Run motor at speed 255
+        analogWrite(pwmPin, 0);
+        Serial.println("Motor running at speed 255");
+        lcd.clear();
+        lcd.print("Speed: MAX ");
+        break;
+
+      case '0':  // Stop motor
+        analogWrite(pwmPin, 255);
+        Serial.println("Motor stopped");
+        lcd.clear();
+        lcd.print("Motor Stopped");
+        break;
+
+      default:  // Invalid command
+        Serial.println("Invalid command! Use '1', '2', '3', or 'S'.");
+        lcd.clear();
+        lcd.print("Invalid Cmd!");
+        break;
+    }
+  }
+}
